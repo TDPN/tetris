@@ -52,3 +52,121 @@ function createGrid() {
     }
     return grid;
   }
+
+   //assign functions to keycodes
+   function control(e) {
+    if (e.keyCode === 39)
+      moveright()
+    else if (e.keyCode === 38)
+      rotate()
+    else if (e.keyCode === 37)
+      moveleft()
+    else if (e.keyCode === 40)
+      moveDown()
+  }
+
+  // the classical behavior is to speed up the block if down button is kept pressed so doing that
+  document.addEventListener('keydown', control)
+
+  //The Tetrominoes
+  const lTetromino = [
+    [1, GRID_WIDTH + 1, GRID_WIDTH * 2 + 1, 2],
+    [GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH + 2, GRID_WIDTH * 2 + 2],
+    [1, GRID_WIDTH + 1, GRID_WIDTH * 2 + 1, GRID_WIDTH * 2],
+    [GRID_WIDTH, GRID_WIDTH * 2, GRID_WIDTH * 2 + 1, GRID_WIDTH * 2 + 2]
+  ]
+
+  const zTetromino = [
+    [0, GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH * 2 + 1],
+    [GRID_WIDTH + 1, GRID_WIDTH + 2, GRID_WIDTH * 2, GRID_WIDTH * 2 + 1],
+    [0, GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH * 2 + 1],
+    [GRID_WIDTH + 1, GRID_WIDTH + 2, GRID_WIDTH * 2, GRID_WIDTH * 2 + 1]
+  ]
+
+  const tTetromino = [
+    [1, GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH + 2],
+    [1, GRID_WIDTH + 1, GRID_WIDTH + 2, GRID_WIDTH * 2 + 1],
+    [GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH + 2, GRID_WIDTH * 2 + 1],
+    [1, GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH * 2 + 1]
+  ]
+
+  const oTetromino = [
+    [0, 1, GRID_WIDTH, GRID_WIDTH + 1],
+    [0, 1, GRID_WIDTH, GRID_WIDTH + 1],
+    [0, 1, GRID_WIDTH, GRID_WIDTH + 1],
+    [0, 1, GRID_WIDTH, GRID_WIDTH + 1]
+  ]
+
+  const iTetromino = [
+    [1, GRID_WIDTH + 1, GRID_WIDTH * 2 + 1, GRID_WIDTH * 3 + 1],
+    [GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH + 2, GRID_WIDTH + 3],
+    [1, GRID_WIDTH + 1, GRID_WIDTH * 2 + 1, GRID_WIDTH * 3 + 1],
+    [GRID_WIDTH, GRID_WIDTH + 1, GRID_WIDTH + 2, GRID_WIDTH + 3]
+  ]
+
+  const theTetrominoes = [lTetromino, zTetromino, tTetromino, oTetromino, iTetromino]
+
+  //Randomly Select Tetromino
+  let random = Math.floor(Math.random() * theTetrominoes.length)
+  let current = theTetrominoes[random][currentRotation]
+
+
+  //move the Tetromino moveDown
+  let currentPosition = 4
+  //draw the shape
+  function draw() {
+    current.forEach(index => {
+      squares[currentPosition + index].classList.add('block')
+      squares[currentPosition + index].style.backgroundImage = colors[random]
+    })
+  }
+
+  //undraw the shape
+  function undraw() {
+    current.forEach(index => {
+      squares[currentPosition + index].classList.remove('block')
+      squares[currentPosition + index].style.backgroundImage = 'none'
+    })
+  }
+
+  //move down on loop
+  function moveDown() {
+    undraw()
+    currentPosition = currentPosition += width
+    draw()
+    freeze()
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (timerId) {
+      clearInterval(timerId)
+      timerId = null
+    } else {
+      draw()
+      timerId = setInterval(moveDown, 1000)
+      nextRandom = Math.floor(Math.random() * theTetrominoes.length)
+      displayShape()
+    }
+  })
+
+  //move left and prevent collisions with shapes moving left
+  function moveright() {
+    undraw()
+    const isAtRightEdge = current.some(index => (currentPosition + index) % width === width - 1)
+    if (!isAtRightEdge) currentPosition += 1
+    if (current.some(index => squares[currentPosition + index].classList.contains('block2'))) {
+      currentPosition -= 1
+    }
+    draw()
+  }
+
+  //move right and prevent collisions with shapes moving right
+  function moveleft() {
+    undraw()
+    const isAtLeftEdge = current.some(index => (currentPosition + index) % width === 0)
+    if (!isAtLeftEdge) currentPosition -= 1
+    if (current.some(index => squares[currentPosition + index].classList.contains('block2'))) {
+      currentPosition += 1
+    }
+    draw()
+  }
