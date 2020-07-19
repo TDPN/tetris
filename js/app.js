@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'url(images/yellow_block.png)'
   ]
 
-function createGrid() {
+
+  function createGrid() {
     // the main grid
     let grid = document.querySelector(".grid")
     for (let i = 0; i < GRID_SIZE; i++) {
@@ -53,8 +54,9 @@ function createGrid() {
     return grid;
   }
 
-   //assign functions to keycodes
-   function control(e) {
+
+  //assign functions to keycodes
+  function control(e) {
     if (e.keyCode === 39)
       moveright()
     else if (e.keyCode === 38)
@@ -170,3 +172,97 @@ function createGrid() {
     }
     draw()
   }
+
+  //freeze the shape
+  function freeze() {
+    // if block has settled
+    if (current.some(index => squares[currentPosition + index + width].classList.contains('block3') || squares[currentPosition + index + width].classList.contains('block2'))) {
+      // make it block2
+      current.forEach(index => squares[index + currentPosition].classList.add('block2'))
+      // start a new tetromino falling
+      random = nextRandom
+      nextRandom = Math.floor(Math.random() * theTetrominoes.length)
+      current = theTetrominoes[random][currentRotation]
+      currentPosition = 4
+      draw()
+      displayShape()
+      addScore()
+      gameOver()
+    }
+  }
+  freeze()
+
+  //Rotate the Tetromino
+  function rotate() {
+    undraw()
+    currentRotation++
+    if (currentRotation === current.length) {
+      currentRotation = 0
+    }
+    current = theTetrominoes[random][currentRotation]
+    draw()
+  }
+
+  //Game Over
+  function gameOver() {
+    if (current.some(index => squares[currentPosition + index].classList.contains('block2'))) {
+      scoreDisplay.innerHTML = 'end'
+      clearInterval(timerId)
+    }
+  }
+
+  //show previous tetromino in scoreDisplay
+  const displayWidth = 4
+  const displaySquares = document.querySelectorAll('.previous-grid div')
+  let displayIndex = 0
+
+  const smallTetrominoes = [
+    [1, displayWidth + 1, displayWidth * 2 + 1, 2], /* lTetromino */
+    [0, displayWidth, displayWidth + 1, displayWidth * 2 + 1], /* zTetromino */
+    [1, displayWidth, displayWidth + 1, displayWidth + 2], /* tTetromino */
+    [0, 1, displayWidth, displayWidth + 1], /* oTetromino */
+    [1, displayWidth + 1, displayWidth * 2 + 1, displayWidth * 3 + 1] /* iTetromino */
+  ]
+
+  function displayShape() {
+    displaySquares.forEach(square => {
+      square.classList.remove('block')
+      square.style.backgroundImage = 'none'
+    })
+    smallTetrominoes[nextRandom].forEach(index => {
+      displaySquares[displayIndex + index].classList.add('block')
+      displaySquares[displayIndex + index].style.backgroundImage = colors[nextRandom]
+    })
+  }
+
+  //Add score
+  function addScore() {
+    for (currentIndex = 0; currentIndex < GRID_SIZE; currentIndex += GRID_WIDTH) {
+      const row = [currentIndex, currentIndex + 1, currentIndex + 2, currentIndex + 3, currentIndex + 4, currentIndex + 5, currentIndex + 6, currentIndex + 7, currentIndex + 8, currentIndex + 9]
+      if (row.every(index => squares[index].classList.contains('block2'))) {
+        score += 10
+        lines += 1
+        scoreDisplay.innerHTML = score
+        linesDisplay.innerHTML = lines
+        row.forEach(index => {
+          squares[index].style.backgroundImage = 'none'
+          squares[index].classList.remove('block2') || squares[index].classList.remove('block')
+
+        })
+        //splice array
+        const squaresRemoved = squares.splice(currentIndex, width)
+        squares = squaresRemoved.concat(squares)
+        squares.forEach(cell => grid.appendChild(cell))
+      }
+    }
+  }
+
+  //Styling eventListeners
+  hamburgerBtn.addEventListener('click', () => {
+    menu.style.display = 'flex'
+  })
+  span.addEventListener('click', () => {
+    menu.style.display = 'none'
+  })
+
+})
